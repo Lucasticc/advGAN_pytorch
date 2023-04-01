@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-# Target Model definition
+# Target Model definition 目标网络定义
 class MNIST_target_net(nn.Module):
     def __init__(self):
         super(MNIST_target_net, self).__init__()

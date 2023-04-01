@@ -14,8 +14,8 @@ if __name__ == "__main__":
     # Define what device we are using
     print("CUDA Available: ", torch.cuda.is_available())
     device = torch.device("cuda" if (use_cuda and torch.cuda.is_available()) else "cpu")
-
-    mnist_dataset = torchvision.datasets.MNIST('./dataset', train=True, transform=transforms.ToTensor(), download=True)
+# dataloader 载入需要训练的模型数据
+    mnist_dataset = torchvision.datasets.MNIST('/Users/lanyiwei/data/test_set', train=True, transform=transforms.ToTensor(), download=True)
     train_dataloader = DataLoader(mnist_dataset, batch_size=batch_size, shuffle=False, num_workers=1)
 
     # training the target model

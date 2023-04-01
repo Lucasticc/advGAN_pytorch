@@ -6,7 +6,9 @@ import torch.nn.functional as F
 import torchvision
 import os
 
-models_path = './models/'
+#存放 model的路径
+# models_path = './models/'
+models_path = '/Users/lanyiwei/data/advmodel'
 
 
 # custom weights initialization called on netG and netD
