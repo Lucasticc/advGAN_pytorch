@@ -1,11 +1,5 @@
 import torch.nn as nn
 
-def gaussian_weights_init(m):
-    classname = m.__class__.__name__
-    # 字符串查找find，找不到返回-1，不等-1即字符串中含有该字符
-    if classname.find('Conv') != -1:
-        m.weight.data.normal_(0.0, 0.04)
-
 
 class FaceCNN(nn.Module):
     # 初始化网络结构
@@ -71,4 +65,8 @@ class FaceCNN(nn.Module):
         x = x.view(x.shape[0], -1)
         y = self.fc(x)
         return y    
-    
+def gaussian_weights_init(m):
+    classname = m.__class__.__name__
+    # 字符串查找find，找不到返回-1，不等-1即字符串中含有该字符
+    if classname.find('Conv') != -1:
+        m.weight.data.normal_(0.0, 0.04)
