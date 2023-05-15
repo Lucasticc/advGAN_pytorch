@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import h5py
 import torch.utils.data as data
+import torchvision.transforms as transforms
 # import transforms
 
 
@@ -21,11 +22,12 @@ class CK(data.Dataset):
         the split are in order according to the fold number
     """
 
-    def __init__(self, split='Training', fold = 1, transform=None):
+    # def __init__(self, split='Training', fold = 1, transform=None):
+    def __init__(self, split, fold = 1, transform=transforms.ToTensor()):
         self.transform = transform
         self.split = split  # training set or test set
         self.fold = fold # the k-fold cross validation
-        self.data = h5py.File('./data/CK_data.h5', 'r', driver='core')
+        self.data = h5py.File('./H5File/CK+.h5', 'r', driver='core')
 
         number = len(self.data['data_label']) #981
         sum_number = [0,135,312,387,594,678,927,981] # the sum of class number
@@ -81,6 +83,8 @@ class CK(data.Dataset):
         img = Image.fromarray(img)
         if self.transform is not None:
             img = self.transform(img)
+            # img = img.unsqueeze(0)
+        # print(img)
         return img, target
 
     def __len__(self):
