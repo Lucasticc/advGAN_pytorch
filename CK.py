@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import h5py
 import torch.utils.data as data
+# import transforms
 
 
 class CK(data.Dataset):
@@ -88,3 +89,12 @@ class CK(data.Dataset):
         elif self.split == 'Testing':
             return len(self.test_data)
 
+# if __name__ == '__main__':
+# 	transform_train = transforms.Compose([
+# 		transforms.ToTensor(),
+# 	])
+# 	# transform_train = None
+# 	data = CK(split = 'Training', transform = transform_train)
+# 	for i in range(3):
+# 		print(data.__getitem__(i))
+# 	print(data.__len__())
