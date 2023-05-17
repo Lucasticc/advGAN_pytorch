@@ -7,7 +7,7 @@ import numpy as np
 import h5py
 import skimage.io
 
-ck_path = r'Z:\data\CK+48'
+ck_path = r'/Users/lanyiwei/pytest/advGAN_pytorch/CK+48'
 
 anger_path = os.path.join(ck_path, 'anger')
 disgust_path = os.path.join(ck_path, 'disgust')
