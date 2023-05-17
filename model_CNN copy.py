@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import cv2
 import os
+import transforms as transforms
+import argparse
 from CK import CK
 # 首先 深度学习在gpu中运行 首先就是要模型（model）和损失函数(loss_function)和数据(data)放到gpu中运行 .cuda()
 # 在我们重写我们的数据加载类的时候首先需要将数据放到cuda中然后再返回
@@ -242,10 +244,32 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
 
 def main():
     # 数据集实例化(创建数据集)
+    print('==> Preparing data..')
+    cut_size = 44
+    parser = argparse.ArgumentParser(description='PyTorch CK+ CNN Training')
+    parser.add_argument('--fold', default=1, type=int, help='k fold number')
+    parser.add_argument('--bs', default=128, type=int, help='batch_size')
+
+    opt = parser.parse_args()
+    transform_train = transforms.Compose([
+        transforms.RandomCrop(cut_size),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+    ])
+
+    transform_test = transforms.Compose([
+        transforms.TenCrop(cut_size),
+        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
+    ])
+
+    trainset = CK(split = 'Training', fold = opt.fold, transform=transform_train)
+    train_dataset = torch.utils.data.DataLoader(trainset, batch_size=opt.bs, shuffle=True, num_workers=1)
+    testset = CK(split = 'Testing', fold = opt.fold, transform=transform_test)
+    val_dataset = torch.utils.data.DataLoader(testset, batch_size=5, shuffle=False, num_workers=1)
     # train_dataset = FaceDataset(root=r'Z:\torch test\data\finnal\train_set')
-    train_dataset = CK(split='Training')
+    # train_dataset = CK(split='Training')
     # val_dataset = FaceDataset(root=r'Z:\torch test\data\finnal\verify_set')
-    val_dataset = CK(split='Testing')
+    # val_dataset = CK(split='Testing')
     # 超参数可自行指定
     model = train(train_dataset, val_dataset, batch_size=128, epochs=1, learning_rate=0.1, wt_decay=0)
     # 保存模型

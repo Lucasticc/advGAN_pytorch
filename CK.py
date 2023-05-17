@@ -3,8 +3,6 @@ from PIL import Image
 import numpy as np
 import h5py
 import torch.utils.data as data
-import torchvision.transforms as transforms
-# import transforms
 
 
 class CK(data.Dataset):
@@ -22,12 +20,11 @@ class CK(data.Dataset):
         the split are in order according to the fold number
     """
 
-    # def __init__(self, split='Training', fold = 1, transform=None):
-    def __init__(self, split, fold = 1, transform=transforms.ToTensor()):
+    def __init__(self, split='Training', fold = 1, transform=None):
         self.transform = transform
         self.split = split  # training set or test set
         self.fold = fold # the k-fold cross validation
-        self.data = h5py.File('./H5File/CK+.h5', 'r', driver='core')
+        self.data = h5py.File('advGAN_pytorch/H5File/CK+.h5', 'r', driver='core')
 
         number = len(self.data['data_label']) #981
         sum_number = [0,135,312,387,594,678,927,981] # the sum of class number
@@ -83,8 +80,6 @@ class CK(data.Dataset):
         img = Image.fromarray(img)
         if self.transform is not None:
             img = self.transform(img)
-            # img = img.unsqueeze(0)
-        # print(img)
         return img, target
 
     def __len__(self):
@@ -93,12 +88,3 @@ class CK(data.Dataset):
         elif self.split == 'Testing':
             return len(self.test_data)
 
-# if __name__ == '__main__':
-# 	transform_train = transforms.Compose([
-# 		transforms.ToTensor(),
-# 	])
-# 	# transform_train = None
-# 	data = CK(split = 'Training', transform = transform_train)
-# 	for i in range(3):
-# 		print(data.__getitem__(i))
-# 	print(data.__len__())
