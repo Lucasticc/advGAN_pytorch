@@ -6,9 +6,8 @@ import numpy as np
 import pandas as pd
 import cv2
 import os
-import transforms as transforms
-import argparse
-from CK import CK
+from dataload_copy import FaceDataset
+#对于mac 只需要将\\ 改为/
 # 首先 深度学习在gpu中运行 首先就是要模型（model）和损失函数(loss_function)和数据(data)放到gpu中运行 .cuda()
 # 在我们重写我们的数据加载类的时候首先需要将数据放到cuda中然后再返回
 # 在验证集和训练集中 我们 for循环每一个peach 都需要将其中的数据放到gpu中 (好像不需要这样)只要在 我们的数据加载类中将数据放入到gpu中每次加载数据的时候就都没有问题了
@@ -30,6 +29,7 @@ def validate(model, dataset, batch_size):
     total = len(dataset)
     right = 0 
     # loss_function = nn.CrossEntropyLoss()
+    # 防止梯度爆炸
     with torch.no_grad():
         for images, labels in val_loader:
             images = images.cuda()
@@ -48,7 +48,7 @@ def validate(model, dataset, batch_size):
     return acc
 
 # 我们通过继承Dataset类来创建我们自己的数据加载类，命名为FaceDataset
-class FaceDataset(data.Dataset):
+# class FaceDataset(data.Dataset):
     '''
     首先要做的是类的初始化。之前的image-emotion对照表已经创建完毕，
     在加载数据时需用到其中的信息。因此在初始化过程中，我们需要完成对image-emotion对照表中数据的读取工作。
@@ -59,8 +59,8 @@ class FaceDataset(data.Dataset):
         super(FaceDataset, self).__init__()
         self.root = root
         print(root)
-        df_path = pd.read_csv(root + '\\image_emotion.csv', header=None, usecols=[0])
-        df_label = pd.read_csv(root + '\\image_emotion.csv', header=None, usecols=[1])
+        df_path = pd.read_csv(root + '/image_emotion.csv', header=None, usecols=[0])
+        df_label = pd.read_csv(root + '/image_emotion.csv', header=None, usecols=[1])
         self.path = np.array(df_path)[:, 0]
         self.label = np.array(df_label)[:, 0]
 
@@ -77,7 +77,7 @@ class FaceDataset(data.Dataset):
 
     # 读取某幅图片，item为索引号
     def __getitem__(self, item):
-        face = cv2.imread(self.root + '\\' + self.path[item])
+        face = cv2.imread(self.root + '/' + self.path[item])
         # 读取单通道灰度图
         face_gray = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
         # 高斯模糊
@@ -89,10 +89,10 @@ class FaceDataset(data.Dataset):
         # 用于训练的数据需为tensor类型
         face_tensor = torch.from_numpy(face_normalized) # 将python中的numpy数据类型转化为pytorch中的tensor数据类型
         face_tensor = face_tensor.type('torch.FloatTensor') # 指定为'torch.FloatTensor'型，否则送进模型后会因数据类型不匹配而报错
-        face_tensor = face_tensor.cuda()
+        # face_tensor = face_tensor.cuda()
         label = self.label[item]
         label = torch.tensor(label)
-        label = label.cuda()
+        # label = label.cuda()
         return face_tensor, label
 
 
@@ -117,7 +117,8 @@ class FaceCNN(nn.Module):
             # input:(bitch_size, 1, 48, 48), output:(bitch_size, 64, 48, 48), (48-3+2*1)/1+1 = 48
             nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1), # 卷积层
             nn.BatchNorm2d(num_features=64), # 归一化
-            nn.RReLU(inplace=True), # 激活函数
+            # nn.RReLU(inplace=True), # 激活函数
+            nn.Sigmoid(), # 激活函数
             # output(bitch_size, 64, 24, 24)
             nn.MaxPool2d(kernel_size=2, stride=2), # 最大值池化
         )
@@ -179,11 +180,11 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     train_loader = data.DataLoader(train_dataset, batch_size)
     # 构建模型
     model = FaceCNN()
-    checkpoint_save_path = "r'Z:\torch test\data\finnal\model/0.pth'"
-    if os.path.exists(r'Z:\torch test\data\finnal\model\10.pth'):
+    checkpoint_save_path = r'Z:\data\model'
+    if os.path.exists(r'Z:\data\model\final.pth'):
         print('-------------load the model-----------------')
         # model.load_state_dict(torch.load(r'Z:\torch test\data\finnal\model\10.pth'))
-        model = torch.load(r'Z:\torchtest\data\finnal\model\first1.pth')
+        model = torch.load(checkpoint_save_path+'/final.pth')
         # model.eval()    # 模型推理时设置
    #如果模型之前训练过，就加载之前的模型继续训练
     model.cuda()
@@ -201,10 +202,11 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
         # scheduler.step() # 学习率衰减
         model.train()# 模型训练
         for images, emotion in train_loader:
-            # 梯度清零
+            # 梯度清零 
+            # if epoch % 2 ==0:
             optimizer.zero_grad()
-            # images.cuda()
-            # emotion.cuda()
+            images=images.cuda()
+            emotion=emotion.cuda()
             # 前向传播
             output = model.forward(images)
             # 误差计算
@@ -226,9 +228,9 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
             print('After {} epochs , the acc_val is : '.format(epoch+1), acc_val)
             train_acc.append(acc_train) 
             acc_vall.append(acc_val)
-            
+        model_path = r'Z:\data\model'
         if epoch % 10 == 0:
-            path = r'/Users/lanyiwei/pytest/torchtest/savedata'+'/'+ str(epoch) +'.pth'
+            path = model_path+'/'+ str(epoch) +'.pth'
             torch.save(model,path)
     # with open("r'Z:\torch test\data\finnal\model'\train_loss.txt'", 'w') as train_loss:
     #     train_los.write(str(train_loss))
@@ -236,44 +238,25 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     #     train_ac.write(str(train_acc))
     # with open("r'Z:\torch test\data\finnal\model'\acc_vall.txt'", 'w') as acc_vall:
     #     acc_vall.write(str(acc_vall))
-    path1 = 'Users/lanyiwei/pytest/torchtest/savedata'
-    np.savetxt(path1+'train_loss.txt', train_loss, fmt = '%f', delimiter = ',')
-    np.savetxt(path1+'train_acc', train_acc, fmt = '%f', delimiter = ',')
-    np.savetxt(path1+'acc_vall', acc_vall, fmt = '%f', delimiter = ',')
+    path1 = r'Z:\data\savedata'
+    np.savetxt(path1+'/train_loss.txt', train_loss, fmt = '%f', delimiter = ',')
+    np.savetxt(path1+'/train_acc.txt', train_acc, fmt = '%f', delimiter = ',')
+    np.savetxt(path1+'/acc_vall.txt', acc_vall, fmt = '%f', delimiter = ',')
     return model
 
 def main():
     # 数据集实例化(创建数据集)
-    print('==> Preparing data..')
-    cut_size = 44
-    parser = argparse.ArgumentParser(description='PyTorch CK+ CNN Training')
-    parser.add_argument('--fold', default=1, type=int, help='k fold number')
-    parser.add_argument('--bs', default=128, type=int, help='batch_size')
+    train_set = r'Z:\data\CK+48'
+    verify_set = r'Z:\data\CK+48'
+    model_path = r'Z:\data\model'
 
-    opt = parser.parse_args()
-    transform_train = transforms.Compose([
-        transforms.RandomCrop(cut_size),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-    ])
-
-    transform_test = transforms.Compose([
-        transforms.TenCrop(cut_size),
-        transforms.Lambda(lambda crops: torch.stack([transforms.ToTensor()(crop) for crop in crops])),
-    ])
-
-    trainset = CK(split = 'Training', fold = opt.fold, transform=transform_train)
-    train_dataset = torch.utils.data.DataLoader(trainset, batch_size=opt.bs, shuffle=True, num_workers=1)
-    testset = CK(split = 'Testing', fold = opt.fold, transform=transform_test)
-    val_dataset = torch.utils.data.DataLoader(testset, batch_size=5, shuffle=False, num_workers=1)
-    # train_dataset = FaceDataset(root=r'Z:\torch test\data\finnal\train_set')
-    # train_dataset = CK(split='Training')
-    # val_dataset = FaceDataset(root=r'Z:\torch test\data\finnal\verify_set')
-    # val_dataset = CK(split='Testing')
+    train_dataset = FaceDataset(root= train_set)
+    val_dataset = FaceDataset(root =verify_set)
     # 超参数可自行指定
-    model = train(train_dataset, val_dataset, batch_size=128, epochs=1, learning_rate=0.1, wt_decay=0)
+    model = train(train_dataset, val_dataset, batch_size=128, epochs=20, learning_rate=0.01, wt_decay=0)
     # 保存模型
-    torch.save(model, '/Users/lanyiwei/pytest/torchtest/savedata')
+    path = model_path+'/'+ 'final' +'.pth'
+    torch.save(model,path)
     # model 是保存模型 model.state_dict() 是保存数据
 
 if __name__ == '__main__':
