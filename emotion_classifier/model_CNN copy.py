@@ -181,7 +181,7 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     # 构建模型
     model = FaceCNN()
     checkpoint_save_path = r'Z:\data\model'
-    if os.path.exists(r'Z:\data\model\final.pth'):
+    if os.path.exists(r'Z:\data\model\final1.pth'):
         print('-------------load the model-----------------')
         # model.load_state_dict(torch.load(r'Z:\torch test\data\finnal\model\10.pth'))
         model = torch.load(checkpoint_save_path+'/final.pth')
@@ -253,7 +253,7 @@ def main():
     train_dataset = FaceDataset(root= train_set)
     val_dataset = FaceDataset(root =verify_set)
     # 超参数可自行指定
-    model = train(train_dataset, val_dataset, batch_size=128, epochs=20, learning_rate=0.01, wt_decay=0)
+    model = train(train_dataset, val_dataset, batch_size=128, epochs=150, learning_rate=0.01, wt_decay=0)
     # 保存模型
     path = model_path+'/'+ 'final' +'.pth'
     torch.save(model,path)
