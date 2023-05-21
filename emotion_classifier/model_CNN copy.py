@@ -241,9 +241,9 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     #     acc_vall.write(str(acc_vall))
     path1 = r'Z:\data\savedata'
     path1 = '/Users/lanyiwei/data/savedata'
-    np.savetxt(path1+'/train_loss.txt', train_loss, fmt = '%f', delimiter = ',')
-    np.savetxt(path1+'/train_acc.txt', train_acc, fmt = '%f', delimiter = ',')
-    np.savetxt(path1+'/acc_vall.txt', acc_vall, fmt = '%f', delimiter = ',')
+    np.savetxt(path1+'/train_loss.txt', train_loss, fmt = '%f',delimiter = '',newline=', ',footer='')
+    np.savetxt(path1+'/train_acc.txt', train_acc, fmt = '%f',delimiter ='',newline=', ',footer='')
+    np.savetxt(path1+'/acc_vall.txt', acc_vall, fmt = '%f',delimiter ='',newline=', ',footer ='')
     return model
 
 def main():
@@ -258,7 +258,7 @@ def main():
     train_dataset = FaceDataset(root= train_set)
     val_dataset = FaceDataset(root =verify_set)
     # 超参数可自行指定
-    model = train(train_dataset, val_dataset, batch_size=128, epochs=150, learning_rate=0.01, wt_decay=0)
+    model = train(train_dataset, val_dataset, batch_size=128, epochs=10, learning_rate=0.01, wt_decay=0)
     # 保存模型
     path = model_path+'/'+ 'final' +'.pth'
     torch.save(model,path)
