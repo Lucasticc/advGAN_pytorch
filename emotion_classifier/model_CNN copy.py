@@ -32,8 +32,8 @@ def validate(model, dataset, batch_size):
     # 防止梯度爆炸
     with torch.no_grad():
         for images, labels in val_loader:
-            images = images.cuda()
-            labels = labels.cuda()
+            images = images.to(device)
+            labels = labels.to(device)
             outputs = model.forward(images)
             # acc = loss_function(pred, labels)
             right = right + (outputs.argmax(1)==labels).sum()  # 计数
@@ -187,10 +187,10 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
         model = torch.load(checkpoint_save_path+'/final.pth')
         # model.eval()    # 模型推理时设置
    #如果模型之前训练过，就加载之前的模型继续训练
-    model.cuda()
+    model.to(device)
     # 损失函数
     loss_function = nn.CrossEntropyLoss()
-    loss_function.cuda()
+    loss_function.to(device)
     # 优化器
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=wt_decay)
     # 学习率衰减
@@ -205,8 +205,8 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
             # 梯度清零 
             # if epoch % 2 ==0:
             optimizer.zero_grad()
-            images=images.cuda()
-            emotion=emotion.cuda()
+            images=images.to(device)
+            emotion=emotion.to(device)
             # 前向传播
             output = model.forward(images)
             # 误差计算
@@ -229,6 +229,7 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
             train_acc.append(acc_train) 
             acc_vall.append(acc_val)
         model_path = r'Z:\data\model'
+        model_path = '/Users/lanyiwei/data/CK+48'
         if epoch % 10 == 0:
             path = model_path+'/'+ str(epoch) +'.pth'
             torch.save(model,path)
@@ -239,6 +240,7 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     # with open("r'Z:\torch test\data\finnal\model'\acc_vall.txt'", 'w') as acc_vall:
     #     acc_vall.write(str(acc_vall))
     path1 = r'Z:\data\savedata'
+    path1 = '/Users/lanyiwei/data/savedata'
     np.savetxt(path1+'/train_loss.txt', train_loss, fmt = '%f', delimiter = ',')
     np.savetxt(path1+'/train_acc.txt', train_acc, fmt = '%f', delimiter = ',')
     np.savetxt(path1+'/acc_vall.txt', acc_vall, fmt = '%f', delimiter = ',')
@@ -248,7 +250,10 @@ def main():
     # 数据集实例化(创建数据集)
     train_set = r'Z:\data\CK+48'
     verify_set = r'Z:\data\CK+48'
+    train_set = '/Users/lanyiwei/data/CK+48'
+    verify_set = '/Users/lanyiwei/data/CK+48'
     model_path = r'Z:\data\model'
+    model_path='/Users/lanyiwei/data/model'
 
     train_dataset = FaceDataset(root= train_set)
     val_dataset = FaceDataset(root =verify_set)

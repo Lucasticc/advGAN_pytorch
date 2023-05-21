@@ -21,13 +21,16 @@ class FaceDataset(data.Dataset):
         self.labels = []
         self.lines = []
         label= -1
-        for fname in os.listdir(self.root):
+        fnames = os.listdir(self.root)
+        fnames.sort()
+        for fname in fnames:
             if fname == '.DS_Store':
                    continue
             fpath = os.path.join(self.root, fname) # 走到下一级子文件见 也就是表情分类文件夹
             if fname not in self.lines:
                 label +=1
             self.lines.append(fname)
+            print(self.lines)
             for tname in os.listdir(fpath):
                 self.labels.append(label)
                 tpath = os.path.join(fpath, tname)
