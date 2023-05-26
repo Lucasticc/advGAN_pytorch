@@ -189,7 +189,7 @@ def main():
     train_dataset = FaceDataset(root= train_set)
     val_dataset = FaceDataset(root =verify_set)
     # 超参数可自行指定
-    model = train(train_dataset, val_dataset, batch_size=128, epochs=150, learning_rate=0.01, wt_decay=0)
+    model = train(train_dataset, val_dataset, batch_size=128, epochs=10, learning_rate=0.01, wt_decay=0)
     # 保存模型
     path = model_path+'/'+ 'final' +'.pth'
     torch.save(model,path)
