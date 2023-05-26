@@ -13,7 +13,7 @@ import os
 #创建默认的CPU设备.
 # device = torch.device("cpu")
 #如果GPU设备可用，将默认设备改为GPU
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # 参数初始化
 def gaussian_weights_init(m):
     classname = m.__class__.__name__
@@ -31,8 +31,8 @@ def validate(model, dataset, batch_size):
     # 防止梯度爆炸
     with torch.no_grad():
         for images, labels in val_loader:
-            # images = images.cuda()
-            # labels = labels.cuda()
+            images = images.to(device)
+            labels = labels.to(device)
             outputs = model.forward(images)
             # acc = loss_function(pred, labels)
             right = right + (outputs.argmax(1)==labels).sum()  # 计数
@@ -180,16 +180,17 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     # 构建模型
     model = FaceCNN()
     checkpoint_save_path = '/Users/lanyiwei/data/model'
+    checkpoint_save_path = r'Z:\data\model'
     if os.path.exists('/Users/lanyiwei/data/model/0.pth'):
         print('-------------load the model-----------------')
         # model.load_state_dict(torch.load(r'Z:\torch test\data\finnal\model\10.pth'))
         model = torch.load(checkpoint_save_path+'/0.pth')
         # model.eval()    # 模型推理时设置
    #如果模型之前训练过，就加载之前的模型继续训练
-    # model.cuda()
+    model.to(device)
     # 损失函数
     loss_function = nn.CrossEntropyLoss()
-    # loss_function.cuda()
+    loss_function.to(device)
     # 优化器
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, weight_decay=wt_decay)
     # 学习率衰减
@@ -204,8 +205,8 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
             # 梯度清零 
             # if epoch % 2 ==0:
             optimizer.zero_grad()
-            # images.cuda()
-            # emotion.cuda()
+            images=images.to(device)
+            emotion=emotion.to(device)
             # 前向传播
             output = model.forward(images)
             # 误差计算
@@ -230,6 +231,7 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
             
         if epoch % 10 == 0:
             path = '/Users/lanyiwei/data/model'+'/'+ str(epoch) +'.pth'
+            path = r'Z:\data\model'+'/'+ str(epoch) +'.pth'
             torch.save(model,path)
     # with open("r'Z:\torch test\data\finnal\model'\train_loss.txt'", 'w') as train_loss:
     #     train_los.write(str(train_loss))
@@ -238,6 +240,8 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
     # with open("r'Z:\torch test\data\finnal\model'\acc_vall.txt'", 'w') as acc_vall:
     #     acc_vall.write(str(acc_vall))
     path1 = '/Users/lanyiwei/data/savedata'
+    path1 = r'Z:\data\savedata'
+    print(train_loss)
     np.savetxt(path1+'/train_loss.txt', train_loss, fmt = '%f', delimiter = ',')
     np.savetxt(path1+'/train_acc.txt', train_acc, fmt = '%f', delimiter = ',')
     np.savetxt(path1+'/acc_vall.txt', acc_vall, fmt = '%f', delimiter = ',')
@@ -246,13 +250,16 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
 def main():
     # 数据集实例化(创建数据集)
     train_set = '/Users/lanyiwei/data/test_set'
+    train_set = r'Z:\data\train_set'
     verify_set = '/Users/lanyiwei/data/verify_set'
+    verify_set = r'Z:\data\verify_set'
     train_dataset = FaceDataset(root= train_set)
     val_dataset = FaceDataset(root =verify_set)
     # 超参数可自行指定
-    model = train(train_dataset, val_dataset, batch_size=128, epochs=20, learning_rate=0.1, wt_decay=0)
+    model = train(train_dataset, val_dataset, batch_size=128, epochs=1, learning_rate=0.1, wt_decay=0)
     # 保存模型
-    torch.save(model, '/Users/lanyiwei/data/model')
+    path = r'Z:\data\model\finel.pth'
+    torch.save(model, path)
     # model 是保存模型 model.state_dict() 是保存数据
 
 if __name__ == '__main__':
