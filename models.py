@@ -99,129 +99,129 @@ class MNIST_target_net(nn.Module):
 
 
 #辨别器 网络定义
-# class Discriminator(nn.Module):
-#     def __init__(self, image_nc):
-#         super(Discriminator, self).__init__()
-#         # MNIST: 1*28*28 conv2d 二维卷机网络输入 和输出
-#         model = [
-#             nn.Conv2d(image_nc, 8, kernel_size=4, stride=2, padding=0, bias=True),
-#             nn.LeakyReLU(0.2),
-#             # 8*13*13
-#             nn.Conv2d(8, 16, kernel_size=4, stride=2, padding=0, bias=True),
-#             nn.BatchNorm2d(16),
-#             nn.LeakyReLU(0.2),
-#             # 16*5*5
-#             nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=0, bias=True),
-#             nn.BatchNorm2d(32),
-#             nn.LeakyReLU(0.2),
-#             nn.Conv2d(32, 1, 1),
-#             nn.Sigmoid()
-#             # 32*1*1
-#         ]   
-#         self.model = nn.Sequential(*model)
+class Discriminator(nn.Module):
+    def __init__(self, image_nc):
+        super(Discriminator, self).__init__()
+        # MNIST: 1*28*28 conv2d 二维卷机网络输入 和输出
+        model = [
+            nn.Conv2d(image_nc, 8, kernel_size=4, stride=2, padding=0, bias=True),
+            nn.LeakyReLU(0.2),
+            # 8*13*13
+            nn.Conv2d(8, 16, kernel_size=4, stride=2, padding=0, bias=True),
+            nn.BatchNorm2d(16),
+            nn.LeakyReLU(0.2),
+            # 16*5*5
+            nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=0, bias=True),
+            nn.BatchNorm2d(32),
+            nn.LeakyReLU(0.2),
+            nn.Conv2d(32, 1, 1),
+            nn.Sigmoid()
+            # 32*1*1
+        ]   
+        self.model = nn.Sequential(*model)
 
-#     def forward(self, x):
-#         output = self.model(x).squeeze()
-#         return output
+    def forward(self, x):
+        output = self.model(x).squeeze()
+        return output
 
-# #生成器 网络
-# class Generator(nn.Module):
-#     def __init__(self,
-#                  gen_input_nc,
-#                  image_nc,
-#                  ):
-#         super(Generator, self).__init__()
-
-#         encoder_lis = [
-#             # MNIST:1*28*28
-#             nn.Conv2d(gen_input_nc, 8, kernel_size=3, stride=1, padding=0, bias=True),
-#             nn.InstanceNorm2d(8),
-#             nn.ReLU(),
-#             # 8*26*26
-#             nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=0, bias=True),
-#             nn.InstanceNorm2d(16),
-#             nn.ReLU(),
-#             # 16*12*12
-#             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=0, bias=True),
-#             nn.InstanceNorm2d(32),
-#             nn.ReLU(),
-#             # 32*5*5
-#         ]
-
-#         bottle_neck_lis = [ResnetBlock(32),
-#                        ResnetBlock(32),
-#                        ResnetBlock(32),
-#                        ResnetBlock(32),]
-
-#         decoder_lis = [
-#             nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=0, bias=False),
-#             nn.InstanceNorm2d(16),
-#             nn.ReLU(),
-#             # state size. 16 x 11 x 11
-#             nn.ConvTranspose2d(16, 8, kernel_size=3, stride=2, padding=0, bias=False),
-#             nn.InstanceNorm2d(8),
-#             nn.ReLU(),
-#             # state size. 8 x 23 x 23
-#             nn.ConvTranspose2d(8, image_nc, kernel_size=6, stride=1, padding=0, bias=False),
-#             nn.Tanh()
-#             # state size. image_nc x 28 x 28
-#         ]
-
-#         self.encoder = nn.Sequential(*encoder_lis)
-#         self.bottle_neck = nn.Sequential(*bottle_neck_lis)
-#         self.decoder = nn.Sequential(*decoder_lis)
-
-#     def forward(self, x):
-#         x = self.encoder(x)
-#         x = self.bottle_neck(x)
-#         x = self.decoder(x)
-#         return x
+#生成器 网络
 class Generator(nn.Module):
-    def __init__(self, gen_input_nc, image_nc):
+    def __init__(self,
+                 gen_input_nc,
+                 image_nc,
+                 ):
         super(Generator, self).__init__()
 
-        # 编码器部分
         encoder_lis = [
-            nn.Conv2d(gen_input_nc, 8, kernel_size=3, stride=1, padding=0, bias=True), # 输入通道为gen_input_nc，输出通道为8的卷积层
-            nn.InstanceNorm2d(8), # 实例标准化
+            # MNIST:1*28*28
+            nn.Conv2d(gen_input_nc, 8, kernel_size=3, stride=1, padding=0, bias=True),
+            nn.InstanceNorm2d(8),
             nn.ReLU(),
+            # 8*26*26
             nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=0, bias=True),
             nn.InstanceNorm2d(16),
             nn.ReLU(),
+            # 16*12*12
             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=0, bias=True),
             nn.InstanceNorm2d(32),
             nn.ReLU(),
+            # 32*5*5
         ]
 
-        # 瓶颈部分
-        bottle_neck_lis = [
-            ResnetBlock(32),
-            ResnetBlock(32),
-            ResnetBlock(32),
-            ResnetBlock(32),
-        ]
+        bottle_neck_lis = [ResnetBlock(32),
+                       ResnetBlock(32),
+                       ResnetBlock(32),
+                       ResnetBlock(32),]
 
-        # 解码器部分
         decoder_lis = [
-            nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=0, bias=False), # 反卷积层，上采样
-            nn.InstanceNorm2d(16), # 实例标准化
+            nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=0, bias=False),
+            nn.InstanceNorm2d(16),
             nn.ReLU(),
+            # state size. 16 x 11 x 11
             nn.ConvTranspose2d(16, 8, kernel_size=3, stride=2, padding=0, bias=False),
             nn.InstanceNorm2d(8),
             nn.ReLU(),
-            nn.ConvTranspose2d(8, image_nc, kernel_size=12, stride=2, padding=0, bias=False), # 最后一个卷积层输出通道为image_nc，内核大小为12
-            nn.Tanh() # Tanh激活函数
+            # state size. 8 x 23 x 23
+            nn.ConvTranspose2d(8, image_nc, kernel_size=6, stride=1, padding=0, bias=False),
+            nn.Tanh()
+            # state size. image_nc x 28 x 28
         ]
 
-        self.encoder = nn.Sequential(*encoder_lis) # 编码器
-        self.bottle_neck = nn.Sequential(*bottle_neck_lis) # 瓶颈
-        self.decoder = nn.Sequential(*decoder_lis) # 解码器
+        self.encoder = nn.Sequential(*encoder_lis)
+        self.bottle_neck = nn.Sequential(*bottle_neck_lis)
+        self.decoder = nn.Sequential(*decoder_lis)
 
     def forward(self, x):
-        x = self.encoder(x) # 编码
-        x = self.bottle_neck(x) # 瓶颈
-        x = self.decoder(x) # 解码
+        x = self.encoder(x)
+        x = self.bottle_neck(x)
+        x = self.decoder(x)
         return x
+# class Generator(nn.Module):
+#     def __init__(self, gen_input_nc, image_nc):
+#         super(Generator, self).__init__()
+
+#         # 编码器部分
+#         encoder_lis = [
+#             nn.Conv2d(gen_input_nc, 8, kernel_size=3, stride=1, padding=0, bias=True), # 输入通道为gen_input_nc，输出通道为8的卷积层
+#             nn.InstanceNorm2d(8), # 实例标准化
+#             nn.ReLU(),
+#             nn.Conv2d(8, 16, kernel_size=3, stride=2, padding=0, bias=True),
+#             nn.InstanceNorm2d(16),
+#             nn.ReLU(),
+#             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=0, bias=True),
+#             nn.InstanceNorm2d(32),
+#             nn.ReLU(),
+#         ]
+
+#         # 瓶颈部分
+#         bottle_neck_lis = [
+#             ResnetBlock(32),
+#             ResnetBlock(32),
+#             ResnetBlock(32),
+#             ResnetBlock(32),
+#         ]
+
+#         # 解码器部分
+#         decoder_lis = [
+#             nn.ConvTranspose2d(32, 16, kernel_size=3, stride=2, padding=0, bias=False), # 反卷积层，上采样
+#             nn.InstanceNorm2d(16), # 实例标准化
+#             nn.ReLU(),
+#             nn.ConvTranspose2d(16, 8, kernel_size=3, stride=2, padding=0, bias=False),
+#             nn.InstanceNorm2d(8),
+#             nn.ReLU(),
+#             nn.ConvTranspose2d(8, image_nc, kernel_size=12, stride=2, padding=0, bias=False), # 最后一个卷积层输出通道为image_nc，内核大小为12
+#             nn.Tanh() # Tanh激活函数
+#         ]
+
+#         self.encoder = nn.Sequential(*encoder_lis) # 编码器
+#         self.bottle_neck = nn.Sequential(*bottle_neck_lis) # 瓶颈
+#         self.decoder = nn.Sequential(*decoder_lis) # 解码器
+
+#     def forward(self, x):
+#         x = self.encoder(x) # 编码
+#         x = self.bottle_neck(x) # 瓶颈
+#         x = self.decoder(x) # 解码
+#         return x
 
 
 # Define a resnet block

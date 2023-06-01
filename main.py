@@ -12,7 +12,7 @@ from modelcnn import FaceCNN
 
 use_cuda=True
 image_nc=1
-epochs = 100
+epochs = 50
 batch_size = 128
 BOX_MIN = 0
 BOX_MAX = 1
@@ -85,6 +85,7 @@ def main():
 
     #原网络地址
     pretrained_model = "/Users/lanyiwei/data/model/F.pth"
+    pretrained_model = r'Z:\data\model\finel.pth'
     # pretrained_model = "./MNIST_target_model.pth"
     #原网络的定义 指向models
     targeted_model = MNIST_target_net().to(device)
@@ -95,7 +96,8 @@ def main():
     targeted_model.eval()
     model_num_labels = 7
     train_set = '/Users/lanyiwei/data/test_set'
-    train_dataset = FaceDataset(root= train_set)
+    train_set_win = r'Z:\data\train_set'
+    train_dataset = FaceDataset(root= train_set_win)
     # train_dataset
     # mnist_dataset = torchvision.datasets.MNIST('./dataset', train=True, transform=transforms.ToTensor(), download=True)
     dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
