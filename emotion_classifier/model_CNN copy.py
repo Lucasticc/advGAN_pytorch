@@ -151,6 +151,7 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
 
         print('After {} epochs , the loss_rate is : '.format(epoch+1), loss_rate.item())
         train_loss.append(loss_rate.item())
+        acc_model = 0
         if epoch % 5 == 0:
             model.eval() # 模型评估
             acc_train = validate(model, train_dataset, batch_size)
@@ -159,11 +160,12 @@ def train(train_dataset, val_dataset, batch_size, epochs, learning_rate, wt_deca
             print('After {} epochs , the acc_val is : '.format(epoch+1), acc_val)
             train_acc.append(acc_train) 
             acc_vall.append(acc_val)
-        model_path = r'Z:\data\model'
+            model_path = r'Z:\data\model'
         # model_path = '/Users/lanyiwei/data/CK+48'
-        if epoch % 10 == 0:
-            path = model_path+'/'+ str(epoch) +'.pth'
-            torch.save(model,path)
+            if acc_val>acc_model:
+                path = model_path+'/'+ str(epoch) +'.pth'
+                torch.save(model,path)
+                acc_model = acc_val
     # with open("r'Z:\torch test\data\finnal\model'\train_loss.txt'", 'w') as train_loss:
     #     train_los.write(str(train_loss))
     # with open("r'Z:\torch test\data\finnal\model'\train_ac.txt'", 'w') as train_acc:
@@ -189,7 +191,7 @@ def main():
     train_dataset = FaceDataset(root= train_set)
     val_dataset = FaceDataset(root =verify_set)
     # 超参数可自行指定
-    model = train(train_dataset, val_dataset, batch_size=128, epochs=10, learning_rate=0.01, wt_decay=0)
+    model = train(train_dataset, val_dataset, batch_size=128, epochs=100, learning_rate=0.01, wt_decay=0)
     # 保存模型
     path = model_path+'/'+ 'final' +'.pth'
     torch.save(model,path)
